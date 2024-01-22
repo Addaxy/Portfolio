@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
-const PartialsFrame = ({ partialsNbr }) => {
+const PartialsFrame = ({ capital, partialsNbr }) => {
   const [percentages, setPercentages] = useState(Array(partialsNbr).fill(50));
   const [rrEntries, setRREntries] = useState(Array(partialsNbr).fill(3));
-  const [partiels, setPartiels] = useState(Array(partialsNbr).fill(0));
+  const [partiels, setPartiels] = useState([]);
   const [total, setTotal] = useState(0);
   const [fullTp, setFullTp] = useState(0);
 
@@ -29,12 +29,12 @@ const PartialsFrame = ({ partialsNbr }) => {
         const pourcentage = percentages[i];
         const rendement = rrEntries[i];
 
-        const partiel = (pourcentage / 100) * 1000 * rendement;
+        const partiel = (pourcentage / 100) * capital * rendement;
         newPartiels.push(partiel);
         newTotal += partiel;
 
         if (newFullTp === 0) {
-          newFullTp = 1000 * rendement;
+          newFullTp = capital * rendement;
         }
       }
 
@@ -44,13 +44,27 @@ const PartialsFrame = ({ partialsNbr }) => {
     };
 
     calculatePartiels();
-  }, [partialsNbr, percentages, rrEntries]);
+  }, [capital, partialsNbr, percentages, rrEntries]);
 
   useEffect(() => {
     // Adjust the arrays when the number of partiels changes
-    setPercentages((prevPercentages) => prevPercentages.slice(0, partialsNbr));
-    setRREntries((prevRREntries) => prevRREntries.slice(0, partialsNbr));
-  }, [partialsNbr]);
+    setPercentages(prevPercentages => {
+      const newPercentages = [...prevPercentages.slice(0, partialsNbr)];
+      for (let i = prevPercentages.length; i < partialsNbr; i++) {
+        newPercentages.push(50);
+      }
+      return newPercentages;
+    });
+  
+    setRREntries(prevRREntries => {
+      const newRREntries = [...prevRREntries.slice(0, partialsNbr)];
+      for (let i = prevRREntries.length; i < partialsNbr; i++) {
+        newRREntries.push(3);
+      }
+      return newRREntries;
+    });
+  }, [capital, partialsNbr]);
+  
 
   return (
     <div style={styles.partialsFrame}>
@@ -69,7 +83,7 @@ const PartialsFrame = ({ partialsNbr }) => {
             onChange={(e) => handleInputChange(index, 'rr', e.target.value)}
             style={styles.input}
           />
-          <span style={styles.result}>{partiels[index].toFixed(2)}</span>
+          <span style={styles.result}>{partiels[index] !== undefined ? partiels[index].toFixed(2) : 0}</span>
         </div>
       ))}
       <div style={styles.totalResult}>
@@ -86,13 +100,14 @@ const PartialsFrame = ({ partialsNbr }) => {
 
 const App = () => {
   const [nbrResult, setNbrResult] = useState(4);
+  const [capital, setCapital] = useState(1000);
 
-  const updateSliderResult = (value) => {
-    setNbrResult(parseInt(value, 10));
+  const updateSliderResult = (e) => {
+    setNbrResult(parseInt(e.target.valueAsNumber, 10));
   };
 
-  const buttonEvent = () => {
-    // Your button event logic here
+  const handleCapitalChange = (e) => {
+    setCapital(parseInt(e.target.value, 10));
   };
 
   return (
@@ -105,17 +120,27 @@ const App = () => {
           max="4"
           step="1"
           value={nbrResult}
-          onChange={(e) => updateSliderResult(e.target.value)}
+          onChange={updateSliderResult}
           style={styles.slider}
         />
         <p style={styles.sliderValue}>{`Vous devez configurer ${nbrResult} partiels`}</p>
+
+        {/* Ajout de l'input pour le "Capital de départ" */}
+        <label style={styles.headerLabel}>Capital de départ :</label>
+        <input
+          type="number"
+          value={capital}
+          onChange={handleCapitalChange}
+          style={styles.input}
+        />
       </div>
 
-      <PartialsFrame partialsNbr={nbrResult} />
+      <PartialsFrame capital={capital} partialsNbr={nbrResult} />
       
     </div>
   );
 };
+
 
 const styles = {
   container: {
