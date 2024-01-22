@@ -126,7 +126,7 @@ const App = () => {
         <p style={styles.sliderValue}>{`Vous devez configurer ${nbrResult} partiels`}</p>
 
         {/* Ajout de l'input pour le "Capital de départ" */}
-        <label style={styles.headerLabel}>Capital de départ :</label>
+        <label style={styles.headerLabel}>Capital risqué :</label>
         <input
           type="number"
           value={capital}
